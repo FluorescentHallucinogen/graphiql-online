@@ -41,23 +41,9 @@ function fetcher(params: Object): Object {
 const DEFAULT_QUERY = `# shift-option/alt-click on a query below to jump to it in the explorer
 # option/alt-click on a field in the explorer to select all subfields
 
-query npmPackage {
+query npmPackage($name: String! = "graphql") {
   npm {
-    package(name: "onegraph-apollo-client") {
-      name
-      homepage
-      downloads {
-        lastMonth {
-          count
-        }
-      }
-    }
-  }
-}
-
-query graphQLPackage {
-  npm {
-    package(name: "graphql") {
+    package(name: $name) {
       name
       homepage
       downloads {
@@ -80,6 +66,8 @@ fragment bundlephobiaInfo on BundlephobiaDependencyInfo {
   }
 }`;
 
+const DEFAULT_VARIABLES = '{"name": "prisma"}';
+
 type State = {
   schema: ?GraphQLSchema,
   query: string,
@@ -96,7 +84,7 @@ class App extends Component<{}, State> {
     query: DEFAULT_QUERY,
     explorerIsOpen: true,
     codeExporterIsOpen: true,
-    variables: "",
+    variables: DEFAULT_VARIABLES,
   };
 
   componentDidMount() {
@@ -187,7 +175,7 @@ class App extends Component<{}, State> {
   };
 
   render() {
-    const { query, schema } = this.state;
+    const { query, schema, variables } = this.state;
 
     const codeExporter = this.state.codeExporterIsOpen ? (
       <CodeExporter
@@ -197,7 +185,7 @@ class App extends Component<{}, State> {
         context={{
           appId: APP_ID,
         }}
-        variables=""
+        variables={variables}
         headers={{}}
         query={query}
         // Optional if you want to use a custom theme
@@ -224,6 +212,7 @@ class App extends Component<{}, State> {
           fetcher={fetcher}
           schema={schema}
           query={query}
+          variables={variables}
           onEditQuery={this._handleEditQuery}
           onEditVariables={this._handleEditVariables}>
           <GraphiQL.Toolbar>
